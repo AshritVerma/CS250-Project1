@@ -26,4 +26,9 @@ int main() {
 }
 
 
-
+int bmp_valid(char s[]){
+    FILE *fp = fopen(s, "rb");
+    int check = fseek(fp, 26, 0) // seek to move pointer 
+    fread() // read the block of data to compare
+    
+}
