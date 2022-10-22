@@ -4,6 +4,7 @@
 #include <filesystem>
 
 
+using namespace std;
 
 void get_dimensions(std::string name, int &start, int &width, int &height, int &padding); 
 
@@ -15,4 +16,6 @@ void write_array(std::ofstream &hst, int arr[256]);
 
 void histo(std::string name, std::string src, std::string dst);
 
+void guass(std::string file_name);
 
+void mono(std::string file_name);

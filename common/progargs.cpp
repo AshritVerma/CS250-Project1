@@ -2,8 +2,7 @@
 #include <vector>
 #include <fstream>
 #include <filesystem>
-
-#include "../common/progargs.hpp"
+#include "progargs.hpp"
 
 using namespace std;
 
@@ -16,7 +15,7 @@ void get_dimensions(string name, int &start, int &width, int &height, int &paddi
     fread(header, sizeof(header), 1, fp);   // read header
     fclose(fp);
 
-    // calculate the following values
+    // calculate the following values based on chart
     start = header[10] + (header[11] << 8) + (header[12] << 16) + (header[13] << 24);
     width = header[18] + (header[19] << 8) + (header[20] << 16) + (header[21] << 24);
     height = header[22] + (header[23] << 8) + (header[24] << 16) + (header[25] << 24);
@@ -72,7 +71,7 @@ void histo(string name, string src, string dst){
     }
     fclose(fp);
 
-    ofstream hst(dst + "/" + name.substr(src.size()+1,name.size()-src.size()-4)+"hst");                     // create ofstream called hst
+    ofstream hst(dst + "/" + name.substr(src.size()+1,name.size()-src.size()-4)+"hst");      // create ofstream called hst
 
     write_array(hst, r_vals);
     write_array(hst, g_vals);
@@ -81,26 +80,5 @@ void histo(string name, string src, string dst){
     hst.close();
 
 }
-
-
-/*
-int main(){
-    histo("images/balloon.bmp", "images", "test_out");
-
-    
-    vector <string> files;
-
-
-    for (const auto& dirEntry : recursive_directory_iterator("images"))
-        files.push_back(dirEntry.path());
-
-    for(int i=0; i < files.size(); ++i){
-        cout << files[i] << endl;
-    }
-    return 0;
-    
-} 
-*/
-
 
 
