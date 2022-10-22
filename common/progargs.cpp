@@ -32,8 +32,8 @@ int is_bmp_valid(string name){
     fclose(fp);                                                 // done using file here
 
     int num_planes = header[26] + (header[27] << 8);            // read number of planes
-    int size_point = header[28]; + (header[29] << 8);            // read size of each point
-    int compression = header[30]; + (header[31] << 8) + (header[32] << 16) + (header[33] << 24);
+    int size_point = header[28] + (header[29] << 8);            // read size of each point
+    int compression = header[30] + (header[31] << 8) + (header[32] << 16) + (header[33] << 24);
 
     if(header[0] != 'B' || header[1] != 'M'|| num_planes != 1 || size_point != 24 || compression != 0){
         return 0;           // bmp file is not valid, return 0
