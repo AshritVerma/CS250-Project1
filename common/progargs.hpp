@@ -6,6 +6,10 @@
 
 using namespace std;
 
+int print_error();
+
+int error_check(int argc, string src, string dst, string oper);
+
 void get_dimensions(std::string name, int &start, int &width, int &height, int &padding); 
 
 int is_bmp_valid(std::string s);
@@ -19,3 +23,4 @@ void histo(std::string name, std::string src, std::string dst);
 void guass(std::string file_name);
 
 void mono(std::string file_name);
+
