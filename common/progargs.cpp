@@ -41,7 +41,7 @@ int error_check(int argc, string src, string dst, string oper){
     return 0;
 }
 
-void get_dimensions(string name, int &start, int &width, int &height, int &padding){
+void get_dimensions(string name, int &start, int &width, int &height){
     unsigned char header[54];               // define header
     FILE *fp = fopen(name.c_str(), "rb");   // open file
 
@@ -52,7 +52,6 @@ void get_dimensions(string name, int &start, int &width, int &height, int &paddi
     start = header[10]+ (header[11] << 8) + (header[12] << 16) + (header[13] << 24);
     width = header[18] + (header[19] << 8) + (header[20] << 16) + (header[21] << 24);
     height = header[22] + (header[23] << 8) + (header[24] << 16) + (header[25] << 24);
-    padding = (4 - (width * 3) % 4) % 4;
 
 }
 
@@ -92,7 +91,8 @@ void histo(string name, string src, string dst){
     for(int r=0; r < 256; r++)
         r_vals[r] = g_vals[r] = b_vals[r] = 0;
 
-    get_dimensions(name, start, width, height, padding);
+    get_dimensions(name, start, width, height);
+    padding = (4 - (width * 3) % 4) % 4;
 
     FILE *fp = fopen(name.c_str(), "rb");
 
