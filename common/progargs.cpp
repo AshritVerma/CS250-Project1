@@ -9,6 +9,38 @@ using namespace std;
 
 using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
 
+
+int print_error(){
+    cout << "\t" << "./build/image-aos in_path out_path oper\n";
+    cout << "\t\t" << "operation: copy, histo, mono, guass\n";
+    return 1;
+}
+
+int error_check(int argc, string src, string dst, string oper){
+    if(argc != 4){
+        cout << "Wrong format:\n";
+        return print_error();
+    }
+
+    if(oper != "copy" && oper != "histo" && oper != "mono" && oper != "guass"){
+        cout << "Unexpected operation: " << oper << endl;
+        return print_error();
+    }
+
+    cout << "Input path: " << src << endl;
+    cout << "Output path: " << dst << endl;
+
+    if(!filesystem::exists(src)){
+        cout << "Cannot open directory: [" << src << "]\n";
+        return print_error();
+    }
+    if(!filesystem::exists(dst)){
+        cout << "Output directory [" << dst << "] does not exist\n";
+        return print_error();
+    }
+    return 0;
+}
+
 void get_dimensions(string name, int &start, int &width, int &height, int &padding){
     unsigned char header[54];               // define header
     FILE *fp = fopen(name.c_str(), "rb");   // open file
@@ -17,7 +49,7 @@ void get_dimensions(string name, int &start, int &width, int &height, int &paddi
     fclose(fp);
 
     // calculate the following values based on chart
-    start = header[10]; //+ (header[11] << 8) + (header[12] << 16) + (header[13] << 24);
+    start = header[10]+ (header[11] << 8) + (header[12] << 16) + (header[13] << 24);
     width = header[18] + (header[19] << 8) + (header[20] << 16) + (header[21] << 24);
     height = header[22] + (header[23] << 8) + (header[24] << 16) + (header[25] << 24);
     padding = (4 - (width * 3) % 4) % 4;
