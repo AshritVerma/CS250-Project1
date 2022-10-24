@@ -1,5 +1,7 @@
 // Main function for AOS implementation
 #include "../common/progargs.hpp"
+#include "../aos/imageaos.hpp"
+
 
 #include <iostream>
 #include <vector>
@@ -38,11 +40,10 @@ int main(int argc, char *argv[]){
         for(int i=0; i < static_cast<int>(files.size()); ++i)
             histo(files[i], argv[1], argv[2]);
     }
-
+    
     else if(oper == "mono"){
-        cout << 'Mono' << endl;
        for(int i=0; i < static_cast<int>(files.size()); ++i)
-            mono(files[i]);
+            mono(files[i], src, dst);
     }
 
     else if(oper == "guass"){
