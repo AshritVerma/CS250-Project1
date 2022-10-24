@@ -6,9 +6,15 @@
 
 using namespace std;
 
+/*
+struct color{
+    int r,g,b;
+};
+*/
+
 int print_error();
 
-void write(string file_name, vector <color> &colors);
+//void write(string file_name, vector <color> &colors);
 
 int error_check(int argc, string src, string dst, string oper);
 
@@ -22,7 +28,4 @@ void write_array(std::ofstream &hst, int (&arr)[256]);
 
 void histo(std::string name, std::string src, std::string dst);
 
-void guass(std::string file_name);
-
-void mono(std::string file_name);
 

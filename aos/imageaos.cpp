@@ -1,5 +1,6 @@
 // Image Handling with AOS implementation
 #include "../common/progargs.hpp"
+#include "../aos/imageaos.hpp"
 
 #include <iostream>
 #include <vector>
@@ -13,10 +14,32 @@ struct color{
     int r,g,b;
 };
 
-void write(string file_name, vector <color> &colors){
 
+void write(ofstream &file_path, vector <color> &colors, string file_name){
+    unsigned char header[58];
+    FILE *fp = fopen(file_name.c_str(), "rb");                  // open file
+    fread(header, sizeof(header), 1, fp);                       // read file 1 byte at a time and store i
 
-    
+    int start,width, height;
+
+    get_dimensions(file_name, start, width, height);
+
+    int padding = (4 - (width * 3) % 4) % 4;
+
+    for(int h = 0; h < 58; h++)
+        file_path << header[h];
+
+    for(int i = 0; i < start - 58; i++)
+        file_path << static_cast<char>(0x00);
+
+    for(int y = 0; y < height; y++){
+        for(int x = 0; x < width; x++)
+            file_path << static_cast<char>(colors[y*width + x].b) << static_cast<char>(colors[y*width + x].g) << static_cast<char>(colors[y*width + x].r);
+
+        for(int i = 0; i < padding; i++)
+            file_path << static_cast<char>(0x00);
+    }
+    file_path.close();
 }
 
 
@@ -39,9 +62,9 @@ void mono(string file_name, string src, string dst){
     FILE *fp = fopen(file_name.c_str(), "rb");
 
     fseek(fp, start, SEEK_SET);
-    cout << "width: " << width << endl;
+    
     // reads all data in array of structs, called colors
-    for(int y = 0; y < 1; y++){
+    for(int y = 0; y < height; y++){
         for(int x = 0; x < width; x++){
             fread(c, 1, 3, fp);   
             float n[3]; 
@@ -65,15 +88,14 @@ void mono(string file_name, string src, string dst){
             color clr;
             clr.b = clr.g = clr.r = g;
             colors.push_back(clr);
-            cout << x << ": " << g << endl; 
         }
 
         fseek(fp,padding,SEEK_CUR);
     }
 
-    ofstream hst(dst + "/" + file_name.substr(src.size()+1,file_name.size()-src.size()-4)+"hst");
+    ofstream hst(dst + "/" + file_name.substr(src.size()+1,file_name.size()-src.size()-4)+"bmp");
 
-    write(hst,colors);
+    write(hst,colors, file_name);
 
     fclose(fp);
 }

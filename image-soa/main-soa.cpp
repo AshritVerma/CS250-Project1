@@ -1,5 +1,6 @@
 // Main function for SOA implementation
 #include "../common/progargs.hpp"
+#include "../soa/imagesoa.hpp"
 
 #include <iostream>
 #include <vector>
@@ -41,7 +42,7 @@ int main(int argc, char *argv[]){
 
     else if(oper == "mono"){
        for(int i=0; i < static_cast<int>(files.size()); ++i)
-            mono(files[i]);
+            mono(files[i], src, dst);
     }
 
     else if(oper == "guass"){

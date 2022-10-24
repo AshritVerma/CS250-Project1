@@ -9,8 +9,8 @@ add_compile_options(-Wall -Wextra -Werror -pedantic -pedantic-errors)
 set(CMAKE_CXX_FLAGS_RELEASE "-march=native")
 
 add_library(common common/progargs.cpp common/progargs.hpp)
-add_library(aos aos/imageaos.cpp)
-add_library(soa soa/imagesoa.cpp)
+add_library(aos aos/imageaos.cpp aos/imageaos.hpp)
+add_library(soa soa/imagesoa.cpp soa/imagesoa.hpp)
 
 add_executable(image-aos image-aos/main-aos.cpp)
 target_link_libraries(image-aos common aos)
