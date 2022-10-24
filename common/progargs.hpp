@@ -16,7 +16,7 @@ int is_bmp_valid(std::string s);
 
 void copy(std::string src, std::string dst);
 
-void write_array(std::ofstream &hst, int arr[256]);
+void write_array(std::ofstream &hst, int (&arr)[256]);
 
 void histo(std::string name, std::string src, std::string dst);
 

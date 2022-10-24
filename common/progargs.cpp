@@ -76,13 +76,13 @@ void copy(string src, string dst){
     std::filesystem::copy(src, dst);
 }
 
-void write_array(ofstream &hst, int arr[256]){
+void write_array(ofstream &hst, int (&arr)[256]){
     for(int i = 0; i < 256; i++)
         hst << arr[i] << " ";
     hst << endl;
 }
 
-// 23 lines without any blank lines
+// 25 lines excluding blank lines
 void histo(string name, string src, string dst){
 
     int r_vals[256], g_vals[256], b_vals[256], start, width, height, padding;
@@ -101,7 +101,7 @@ void histo(string name, string src, string dst){
     for(int y = 0; y < height; y++){
         for(int x = 0; x < width; x++){
             fread(c, 1, 3, fp);    
-            b_vals[static_cast<uint8_t>(c[0])]++;   // iterate value 
+            b_vals[static_cast<uint8_t>(c[0])]++;   
             g_vals[static_cast<uint8_t>(c[1])]++;
             r_vals[static_cast<uint8_t>(c[2])]++;
         }
