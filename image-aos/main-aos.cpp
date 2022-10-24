@@ -5,6 +5,7 @@
 #include <vector>
 #include <fstream>
 #include <filesystem>
+#include <chrono>
 
 using namespace std;
 using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
@@ -54,7 +55,12 @@ int main(int argc, char *argv[]){
         files.push_back(dirEntry.path());
 
     for(int i=0; i < static_cast<int>(files.size()); ++i)
-        is_bmp_valid(files[i]);
+        if(!is_bmp_valid(files[i])){
+            cout << "Invalid BMP File: " << files[i] << endl;
+            // should add a method of how to not perform operation on the invalid files (ie removing from files vector)
+        }
+
+    auto start = chrono::high_resolution_clock::now(); 
 
     if(oper == "copy")
         copy(src, dst);
@@ -73,6 +79,10 @@ int main(int argc, char *argv[]){
        for(int i=0; i < static_cast<int>(files.size()); ++i)
             guass(files[i]);
     }
+
+    auto stop = chrono::high_resolution_clock::now(); 
+    auto duration = duration_cast<chrono::microseconds>(stop - start);
+    std::cout << duration.count() << endl;
 
     return 0;
 }

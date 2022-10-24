@@ -2,6 +2,7 @@
 #include <vector>
 #include <fstream>
 #include <filesystem>
+#include <chrono>
 #include "progargs.hpp"
 
 using namespace std;
@@ -16,10 +17,10 @@ void get_dimensions(string name, int &start, int &width, int &height, int &paddi
     fclose(fp);
 
     // calculate the following values based on chart
-    start = header[10] + (header[11] << 8) + (header[12] << 16) + (header[13] << 24);
+    start = header[10]; //+ (header[11] << 8) + (header[12] << 16) + (header[13] << 24);
     width = header[18] + (header[19] << 8) + (header[20] << 16) + (header[21] << 24);
     height = header[22] + (header[23] << 8) + (header[24] << 16) + (header[25] << 24);
-    padding = ((4 - (width * 3) % 4) % 4);
+    padding = (4 - (width * 3) % 4) % 4;
 
 }
 
@@ -46,26 +47,31 @@ void copy(string src, string dst){
 
 void write_array(ofstream &hst, int arr[256]){
     for(int i = 0; i < 256; i++)
-        hst << arr[i] << endl;
+        hst << arr[i] << " ";
+    hst << endl;
 }
 
-
-// 24 lines without any blank lines
+// 23 lines without any blank lines
 void histo(string name, string src, string dst){
+
     int r_vals[256], g_vals[256], b_vals[256], start, width, height, padding;
     unsigned char c[3];
+
     for(int r=0; r < 256; r++)
         r_vals[r] = g_vals[r] = b_vals[r] = 0;
+
     get_dimensions(name, start, width, height, padding);
+
     FILE *fp = fopen(name.c_str(), "rb");
-    fseek(fp, start, 0);
+
+    fseek(fp, start, SEEK_SET);
+
     for(int y = 0; y < height; y++){
         for(int x = 0; x < width; x++){
-            fread(c, sizeof(c), 1, fp);         // read color's rgb values
-            b_vals[c[0]]++;                     // iterate value 
-            g_vals[c[1]]++;                     
-            r_vals[c[2]]++; 
-            fseek(fp,3,SEEK_CUR);               // move fp
+            fread(c, 1, 3, fp);    
+            b_vals[static_cast<uint8_t>(c[0])]++;   // iterate value 
+            g_vals[static_cast<uint8_t>(c[1])]++;
+            r_vals[static_cast<uint8_t>(c[2])]++;
         }
         fseek(fp,padding,SEEK_CUR);             // skip padding
     }
