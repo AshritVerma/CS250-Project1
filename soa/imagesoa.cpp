@@ -8,6 +8,9 @@
 
 using namespace std;
 
+
+// unsure of how to initialize the size of the arrays within the struct color, 
+// so I created this global variable (not allowed in project requirements) as a placeholder for now
 const int color_size = 1000;
 
 struct color{
