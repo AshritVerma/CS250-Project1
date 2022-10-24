@@ -29,7 +29,7 @@ int main(int argc, char *argv[]){
             // HOW TO HANDLE AN INVALID BMP FILE HERE
         }
 
-    auto start = chrono::high_resolution_clock::now(); 
+    // auto start = chrono::high_resolution_clock::now(); 
 
     if(oper == "copy")
         copy(src, dst);
@@ -40,6 +40,7 @@ int main(int argc, char *argv[]){
     }
 
     else if(oper == "mono"){
+        cout << 'Mono' << endl;
        for(int i=0; i < static_cast<int>(files.size()); ++i)
             mono(files[i]);
     }
@@ -48,11 +49,11 @@ int main(int argc, char *argv[]){
        for(int i=0; i < static_cast<int>(files.size()); ++i)
             guass(files[i]);
     }
-
+    /*
     auto stop = chrono::high_resolution_clock::now(); 
     auto duration = duration_cast<chrono::microseconds>(stop - start);
     std::cout << duration.count() << endl;
-
+    */
     return 0;
 }
 
