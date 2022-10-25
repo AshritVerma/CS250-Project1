@@ -6,7 +6,8 @@
 
 using namespace std;
 
+void copy(string file_name, string src, string dst);
 
 void mono(string file_name, string src, string dst);
 
-void guass(string file_name);
+void guass(string file_name, string src, string dst);
