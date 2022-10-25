@@ -4,6 +4,7 @@
         "string": "cpp",
         "stack": "cpp",
         "chrono": "cpp",
-        "iosfwd": "cpp"
+        "iosfwd": "cpp",
+        "vector": "cpp"
     }
 }

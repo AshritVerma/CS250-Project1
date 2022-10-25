@@ -30,7 +30,7 @@ int main(int argc, char *argv[]){
             // HOW TO HANDLE AN INVALID BMP FILE HERE
         }
 
-    auto start = chrono::high_resolution_clock::now(); 
+    //auto start = chrono::high_resolution_clock::now(); 
 
     if(oper == "copy")
         copy(src, dst);
@@ -50,9 +50,12 @@ int main(int argc, char *argv[]){
             guass(files[i]);
     }
 
+    /*
     auto stop = chrono::high_resolution_clock::now(); 
     auto duration = duration_cast<chrono::microseconds>(stop - start);
     std::cout << duration.count() << endl;
 
+    */
+   
     return 0;
 }
