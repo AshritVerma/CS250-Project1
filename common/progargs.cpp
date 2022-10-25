@@ -72,11 +72,7 @@ int is_bmp_valid(string name){
     return 1;               // bmp file is valid 
 }
 
-void copy(string src, string dst){
-    std::filesystem::copy(src, dst);
-}
-
-void write_array(ofstream &hst, int (&arr)[256]){
+void histo_write(ofstream &hst, int (&arr)[256]){
     for(int i = 0; i < 256; i++)
         hst << arr[i] << " ";
     hst << endl;
@@ -111,9 +107,9 @@ void histo(string name, string src, string dst){
 
     ofstream hst(dst + "/" + name.substr(src.size()+1,name.size()-src.size()-4)+"hst");      // create ofstream called hst
 
-    write_array(hst, r_vals);
-    write_array(hst, g_vals);
-    write_array(hst, b_vals);   
+    histo_write(hst, r_vals);
+    histo_write(hst, g_vals);
+    histo_write(hst, b_vals);   
 
     hst.close();
 

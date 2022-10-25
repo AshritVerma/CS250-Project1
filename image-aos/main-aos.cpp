@@ -34,7 +34,8 @@ int main(int argc, char *argv[]){
     // auto start = chrono::high_resolution_clock::now(); 
 
     if(oper == "copy")
-        copy(src, dst);
+        for(int i=0; i < static_cast<int>(files.size()); ++i)
+            copy(files[i], src, dst);
 
     else if(oper == "histo"){
         for(int i=0; i < static_cast<int>(files.size()); ++i)
@@ -48,7 +49,7 @@ int main(int argc, char *argv[]){
 
     else if(oper == "guass"){
        for(int i=0; i < static_cast<int>(files.size()); ++i)
-            guass(files[i]);
+            guass(files[i], src, dst);
     }
     /*
     auto stop = chrono::high_resolution_clock::now(); 

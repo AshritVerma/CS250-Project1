@@ -49,12 +49,43 @@ void write(ofstream &file_path, colors &clrs, string file_name){
     file_path.close();                                          // close file path
 }
 
-void guass(string file_name){
+
+void copy(string file_name, string src, string dst){
+    int start, width, height, padding;
+    unsigned char color_bytes[3];
+    struct colors clrs;
+
+    get_dimensions(file_name, start, width, height);
+    padding = (4 - (width * 3) % 4) % 4;
+
+    FILE *fp = fopen(file_name.c_str(), "rb");
+
+    fseek(fp, start, SEEK_SET);
+
+    for(int y = 0; y < height; y++){
+        for(int x = 0; x < width; x++){
+            fread(color_bytes, 1, 3, fp);           // read each set of color bytes
+            clrs.b.push_back(color_bytes[0]);  
+            clrs.g.push_back(color_bytes[1]);
+            clrs.r.push_back(color_bytes[2]); 
+        }
+        fseek(fp,padding,SEEK_CUR);                 
+    }
+    fclose(fp);
+    
+    ofstream hst(dst + "/" + file_name.substr(src.size(),file_name.size()));
+
+    write(hst,clrs, file_name);
+}
+
+
+void guass(string file_name, string src, string dst){
     unsigned char header[54];
     FILE *fp = fopen(file_name.c_str(), "rb");                  // open file
     fread(header, sizeof(header), 1, fp);                       // read file 1 byte at a time and store in header array
 
     fclose(fp);                                                 // done using file here
+    cout << file_name << src << dst << endl;
 }
 
 // helper function to calculate g
@@ -100,7 +131,7 @@ void mono(string file_name, string src, string dst){
         fseek(fp,padding,SEEK_CUR);                 
     }
     fclose(fp);
-    ofstream hst(dst + "/" + file_name.substr(src.size()+1,file_name.size()-src.size()-4)+"bmp");
+    ofstream hst(dst + "/" + file_name.substr(src.size(),file_name.size()));
 
     write(hst,clrs, file_name);
 
