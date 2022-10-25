@@ -70,17 +70,31 @@ void copy(string file_name, string src, string dst){
     ofstream hst(dst + "/" + file_name.substr(src.size(),file_name.size()));
 
     write(hst,clrs, file_name);
+    hst.close();
 }
 
 
 void guass(string file_name, string src, string dst){
-    unsigned char header[54];
+    int start, width, height, padding;
+    unsigned char header[54], color_bytes[3];
     FILE *fp = fopen(file_name.c_str(), "rb");                  // open file
     fread(header, sizeof(header), 1, fp);                       // read file 1 byte at a time and store in header array
 
-    fclose(fp);                                                 // done using file here
+    get_dimensions(file_name, start, width, height);
+    padding = (4 - (width * 3) % 4) % 4;                                            
 
-    cout << file_name << src << dst << endl;
+    vector<color> clrs;
+
+    for(int y = 0; y < height; y++){
+        for(int x = 0; x < width; x++){
+            fread(color_bytes, 1, 3, fp);                       // read each set of color bytes
+            
+        }
+    }
+    ofstream hst(dst + "/" + file_name.substr(src.size(),file_name.size()));
+
+    write(hst,clrs, file_name);
+    hst.close();
 }
 
 
@@ -126,7 +140,6 @@ void mono(string file_name, string src, string dst){
     }
     fclose(fp);
     ofstream hst(dst + "/" + file_name.substr(src.size(),file_name.size()));
-
     write(hst,colors, file_name);
-
+    hst.close();
 }

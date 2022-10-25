@@ -76,7 +76,10 @@ void copy(string file_name, string src, string dst){
     ofstream hst(dst + "/" + file_name.substr(src.size(),file_name.size()));
 
     write(hst,clrs, file_name);
+    hst.close();
 }
+
+
 
 
 void guass(string file_name, string src, string dst){
@@ -85,8 +88,17 @@ void guass(string file_name, string src, string dst){
     fread(header, sizeof(header), 1, fp);                       // read file 1 byte at a time and store in header array
 
     fclose(fp);                                                 // done using file here
-    cout << file_name << src << dst << endl;
+
+    colors clrs;
+    ofstream hst(dst + "/" + file_name.substr(src.size(),file_name.size()));
+
+    write(hst,clrs, file_name);
+    hst.close();
+
 }
+
+
+
 
 // helper function to calculate g
 void mono_helper(unsigned char (&color_bytes)[3], double (&norm)[3], double &g){
@@ -134,5 +146,5 @@ void mono(string file_name, string src, string dst){
     ofstream hst(dst + "/" + file_name.substr(src.size(),file_name.size()));
 
     write(hst,clrs, file_name);
-
+    hst.close();
 }
