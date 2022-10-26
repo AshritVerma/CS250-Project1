@@ -81,21 +81,79 @@ void copy(string file_name, string src, string dst){
 
 
 
+void guass_helper(colors &cls, colors &blur_img, int width, int height){
 
+    int m[5][5] = {{1,4,7,4,1}, {4,16,26,16,4}, {7,26,41,26,7}, {4,16,26,16,4}, {1,4,7,4,1}};
+    
+    for(int y = 2; y < height-2; y++){
+        for(int x = 2; x < width-2; x++){
+            long sum_b = 0, sum_g = 0, sum_r = 0;
+            for(int s = -3; s < 2; s++){
+                for(int t = -3; t < 2; t++){
+                    sum_b += m[s+3][t+3]*static_cast<int>(cls.b[(y+1+s)*width + x+1+t]);
+                    sum_g += m[s+3][t+3]*static_cast<int>(cls.g[(y+1+s)*width + x+1+t]);
+                    sum_r += m[s+3][t+3]*static_cast<int>(cls.r[(y+1+s)*width + x+1+t]);
+                }
+            }
+            blur_img.b.push_back(sum_b/273);
+            blur_img.g.push_back(sum_g/273);
+            blur_img.r.push_back(sum_r/273);
+        }
+    }
+
+}   
+
+void guass_add_border(colors &clrs, int size){
+    clrs.b.resize(size,0x00);
+    clrs.g.resize(size,0x00);
+    clrs.r.resize(size,0x00);
+}
+
+void push_color(colors &clrs, unsigned char (&color_bytes)[3]){
+    clrs.b.push_back(color_bytes[0]);  
+    clrs.g.push_back(color_bytes[1]);
+    clrs.r.push_back(color_bytes[2]);  
+}
+
+
+// 25 lines
 void guass(string file_name, string src, string dst){
-    unsigned char header[54];
+    int start, width, height, padding;
+    unsigned char header[54], color_bytes[3];
     FILE *fp = fopen(file_name.c_str(), "rb");                  // open file
     fread(header, sizeof(header), 1, fp);                       // read file 1 byte at a time and store in header array
 
-    fclose(fp);                                                 // done using file here
+    get_dimensions(file_name, start, width, height);
+    padding = (4 - (width * 3) % 4) % 4;                                            
 
-    colors clrs;
+    colors clrs, blur_img;
+
+    fseek(fp, start, SEEK_SET);
+
+    guass_add_border(clrs,2*(width+4));
+    for(int y = 0; y < height; y++){
+
+        guass_add_border(clrs, clrs.b.size() + 2);              // left border
+
+        for(int x = 0; x < width; x++){
+            fread(color_bytes, 1, 3, fp);                // read each set of color bytes
+            push_color(clrs,color_bytes);                // set values           
+        }
+        guass_add_border(clrs, clrs.b.size() + 2);
+        fseek(fp,padding,SEEK_CUR);     
+    }
+
+    guass_add_border(clrs, clrs.b.size() + (2*(width+4)));
+    
+    guass_helper(clrs, blur_img, width+4, height+4);
+
     ofstream hst(dst + "/" + file_name.substr(src.size(),file_name.size()));
 
-    write(hst,clrs, file_name);
-    hst.close();
+    write(hst, blur_img, file_name);
 
+    hst.close();
 }
+
 
 
 

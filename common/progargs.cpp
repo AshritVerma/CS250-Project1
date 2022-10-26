@@ -74,8 +74,7 @@ int is_bmp_valid(string name){
 
 void histo_write(ofstream &hst, int (&arr)[256]){
     for(int i = 0; i < 256; i++)
-        hst << arr[i] << " ";
-    hst << endl;
+        hst << arr[i] << endl;
 }
 
 // 25 lines excluding blank lines
