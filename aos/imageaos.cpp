@@ -74,27 +74,79 @@ void copy(string file_name, string src, string dst){
 }
 
 
+
+void guass_helper(vector <color> &cls, vector <color> &blur_img, int width, int height){
+
+    int m[5][5] = {{1,4,7,4,1}, {4,16,26,16,4}, {7,26,41,26,7}, {4,16,26,16,4}, {1,4,7,4,1}};
+    
+    for(int y = 2; y < height-2; y++){
+        for(int x = 2; x < width-2; x++){
+            long sum_b = 0, sum_g = 0, sum_r = 0;
+            for(int s = -3; s < 2; s++){
+                for(int t = -3; t < 2; t++){
+                    sum_b += m[s+3][t+3]*static_cast<int>(cls[(y+1+s)*width + x+1+t].b);
+                    sum_g += m[s+3][t+3]*static_cast<int>(cls[(y+1+s)*width + x+1+t].g);
+                    sum_r += m[s+3][t+3]*static_cast<int>(cls[(y+1+s)*width + x+1+t].r);
+                }
+            }
+            color blur;
+
+            blur.b = sum_b / 273.0;
+            blur.g = sum_g / 273.0;
+            blur.r = sum_r / 273.0;
+
+            blur_img.push_back(blur);
+        }
+    }
+
+} 
+
+void push_color(vector <color> &colors, unsigned char (&color_bytes)[3]){
+        color clr;                              // create struct of color
+        clr.b = color_bytes[0];
+        clr.g = color_bytes[1];
+        clr.r = color_bytes[2];                  // set values
+        colors.push_back(clr);                  // push to vector 
+}
+
+
+//26 lines
 void guass(string file_name, string src, string dst){
     int start, width, height, padding;
-    unsigned char header[54], color_bytes[3];
+    unsigned char color_bytes[3];
+
     FILE *fp = fopen(file_name.c_str(), "rb");                  // open file
-    fread(header, sizeof(header), 1, fp);                       // read file 1 byte at a time and store in header array
 
     get_dimensions(file_name, start, width, height);
     padding = (4 - (width * 3) % 4) % 4;                                            
 
-    vector<color> clrs;
+    vector<color> colors, blur_img;
+    color border;
+
+    border.b = border.g = border.r = static_cast<unsigned char>(0x00);
+
+    fseek(fp, start, SEEK_SET);
+
+    colors.resize(2*(width+4),border);                 // first two rows will be set to value zero
 
     for(int y = 0; y < height; y++){
+        colors.resize(colors.size() + 2,border);                   // left border
         for(int x = 0; x < width; x++){
             fread(color_bytes, 1, 3, fp);                       // read each set of color bytes
-            
+            push_color(colors, color_bytes);
         }
+        colors.resize(colors.size() + 2,border);                   // right border
+        fseek(fp,padding,SEEK_CUR);     
     }
+    fclose(fp);
+
+    colors.resize(colors.size() + (2*(width+4)),border);
+ 
+    guass_helper(colors, blur_img, width+4, height+4);
+
     ofstream hst(dst + "/" + file_name.substr(src.size(),file_name.size()));
 
-    write(hst,clrs, file_name);
-    hst.close();
+    write(hst, blur_img, file_name);
 }
 
 
@@ -141,5 +193,4 @@ void mono(string file_name, string src, string dst){
     fclose(fp);
     ofstream hst(dst + "/" + file_name.substr(src.size(),file_name.size()));
     write(hst,colors, file_name);
-    hst.close();
 }
