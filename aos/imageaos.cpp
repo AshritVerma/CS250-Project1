@@ -7,78 +7,90 @@
 #include <fstream>
 #include <filesystem>
 #include <cmath>
+#include <array>
 
 using namespace std;
 
-struct color{
-    uint8_t b,g,r;
-};
-
-void write(ofstream &file_path, vector <color> &colors, string file_name){
-
-    unsigned char header[58];                                   // define variables to be used.
-    int start, width, height, padding;
-
-    FILE *fp = fopen(file_name.c_str(), "rb");                  // open file
-    fread(header, sizeof(header), 1, fp);                       // read file elements into header
-    fclose(fp);                                                 // close file
-
-    get_dimensions(file_name, start, width, height);            // get dimensions of file   
-    padding = (4 - (width * 3) % 4) % 4;                        // calculate padding
-
-    for(int h = 0; h < 58; h++)                                 // write header to output file
-        file_path << header[h];
-
-    for(int i = 0; i < start - 58; i++)                         // write blank characters before start
-        file_path << static_cast<char>(0x00);
-
-    for(int y = 0; y < height; y++){                            // begin to write each colors byte
-        for(int x = 0; x < width; x++)
-            file_path << static_cast<char>(colors[y*width + x].b) << static_cast<char>(colors[y*width + x].g) << static_cast<char>(colors[y*width + x].r);
-
-        for(int i = 0; i < padding; i++)    
-            file_path << static_cast<char>(0x00);               // write padding bytes
-    }
-    file_path.close();                                          // close file path
+void push_color(vector <color> &colors, vector <unsigned char> &color_bytes, int val){
+        color clr;                              
+        clr.b = color_bytes[val];
+        clr.g = color_bytes[val+1];
+        clr.r = color_bytes[val+2];               
+        colors.push_back(clr);                  
 }
 
-void copy(string file_name, string src, string dst){
-    int start, width, height, padding;
-    unsigned char color_bytes[3];
-    vector <color> clrs;
 
+int read(string file_name, vector <color> &colors){
+    auto load_start = chrono::high_resolution_clock::now(); 
+    int start, width, height, padding;
     get_dimensions(file_name, start, width, height);
     padding = (4 - (width * 3) % 4) % 4;
-
+    int size_arr = height*((3*width)+padding);
+    vector <uint8_t> color_bytes(size_arr); 
     FILE *fp = fopen(file_name.c_str(), "rb");
-
     fseek(fp, start, SEEK_SET);
-
-    for(int y = 0; y < height; y++){
-        for(int x = 0; x < width; x++){
-            fread(color_bytes, 1, 3, fp);           // read each set of color bytes
-            color clr;
-            clr.b = color_bytes[0];
-            clr.g = color_bytes[1];
-            clr.r = color_bytes[2];
-            clrs.push_back(clr);
-        }
-        fseek(fp,padding,SEEK_CUR);                 
-    }
+    fread(static_cast<void*>(&color_bytes[0]), 1, size_arr, fp);
     fclose(fp);
-    
-    ofstream hst(dst + "/" + file_name.substr(src.size(),file_name.size()));
-
-    write(hst,clrs, file_name);
-    hst.close();
+    for(int y = 0; y < height; y++){
+        for(int x = 0; x < width; x++)
+            push_color(colors, color_bytes, y*((3*width)+padding) + 3*x);
+    }
+    auto load_stop = chrono::high_resolution_clock::now(); 
+    auto load_t = duration_cast<chrono::microseconds>(load_stop - load_start);
+    return static_cast<int>(load_t.count());
 }
 
 
+void write(string file_name, string src, string dst, vector <color> &colors){
+    unsigned char header[58];                                  
+    int start, width, height, padding;
+    ofstream file_path(dst + "/" + file_name.substr(src.size(),file_name.size()));
+    FILE *fp = fopen(file_name.c_str(), "rb");                  
+    fread(header, sizeof(header), 1, fp);                       
+    fclose(fp);                                                
+    get_dimensions(file_name, start, width, height);               
+    padding = (4 - (width * 3) % 4) % 4; 
+    for(int h = 0; h < 58; h++)   
+        file_path << header[h];
+    for(int i = 0; i < start - 58; i++)
+        file_path << static_cast<char>(0x00);
+    for(int y = 0; y < height; y++){
+        for(int x = 0; x < width; x++)
+            file_path << static_cast<char>(colors[y*width + x].b) << static_cast<char>(colors[y*width + x].g) << static_cast<char>(colors[y*width + x].r);
+        for(int i = 0; i < padding; i++)    
+            file_path << static_cast<char>(0x00);
+    }
+    file_path.close();
+}
 
-void guass_helper(vector <color> &cls, vector <color> &blur_img, int width, int height){
 
+int copy(string file_name, string src, string dst, vector <color> &colors){
+    auto write_start = chrono::high_resolution_clock::now(); 
+    write(file_name, src, dst, colors);
+    auto write_stop = chrono::high_resolution_clock::now(); 
+    auto write_t = duration_cast<chrono::microseconds>(write_stop - write_start);
+    return static_cast<int>(write_t.count());
+}
+
+
+void main_copy(string file_name, string src, string dst, vector <color> &colors){
+    int read_t = read(file_name,colors);
+    auto oper_start = chrono::high_resolution_clock::now();
+    int  write_t = copy(file_name, src, dst, colors);
+    auto oper_stop = chrono::high_resolution_clock::now();
+    auto oper = duration_cast<chrono::microseconds>(oper_stop - oper_start);
+    int oper_and_write_t = static_cast<int>(oper.count());
+    int oper_t = oper_and_write_t - write_t;
+    int total_t = oper_and_write_t + read_t;
+    cout << "File: " << src << "/" << file_name << "(time: " << total_t << ")\n";
+    cout << "\tLoad Time: " << read_t << endl;
+    cout << "\tCopy Time: " << oper_t << endl;
+    cout << "\tStore Time: " << write_t << endl;
+}
+
+
+void gauss_helper(vector <color> &cls, vector <color> &blur_img, int width, int height){
     int m[5][5] = {{1,4,7,4,1}, {4,16,26,16,4}, {7,26,41,26,7}, {4,16,26,16,4}, {1,4,7,4,1}};
-    
     for(int y = 2; y < height-2; y++){
         for(int x = 2; x < width-2; x++){
             long sum_b = 0, sum_g = 0, sum_r = 0;
@@ -90,107 +102,113 @@ void guass_helper(vector <color> &cls, vector <color> &blur_img, int width, int 
                 }
             }
             color blur;
-
             blur.b = sum_b / 273.0;
             blur.g = sum_g / 273.0;
             blur.r = sum_r / 273.0;
-
             blur_img.push_back(blur);
         }
     }
-
 } 
 
-void push_color(vector <color> &colors, unsigned char (&color_bytes)[3]){
-        color clr;                              // create struct of color
-        clr.b = color_bytes[0];
-        clr.g = color_bytes[1];
-        clr.r = color_bytes[2];                  // set values
-        colors.push_back(clr);                  // push to vector 
-}
 
-
-//26 lines
-void guass(string file_name, string src, string dst){
+int gauss_read(string file_name, vector <color> &colors){
+    auto load_start = chrono::high_resolution_clock::now(); 
     int start, width, height, padding;
-    unsigned char color_bytes[3];
-
-    FILE *fp = fopen(file_name.c_str(), "rb");                  // open file
-
     get_dimensions(file_name, start, width, height);
-    padding = (4 - (width * 3) % 4) % 4;                                            
-
-    vector<color> colors, blur_img;
+    padding = (4 - (width * 3) % 4) % 4;
+    vector <unsigned char> color_bytes(height*(3*(width)+padding)); 
     color border;
-
     border.b = border.g = border.r = static_cast<unsigned char>(0x00);
-
+    colors.resize(2*(width+4), border);
+    FILE *fp = fopen(file_name.c_str(), "rb");
     fseek(fp, start, SEEK_SET);
-
-    colors.resize(2*(width+4),border);                 // first two rows will be set to value zero
-
-    for(int y = 0; y < height; y++){
-        colors.resize(colors.size() + 2,border);                   // left border
-        for(int x = 0; x < width; x++){
-            fread(color_bytes, 1, 3, fp);                       // read each set of color bytes
-            push_color(colors, color_bytes);
-        }
-        colors.resize(colors.size() + 2,border);                   // right border
-        fseek(fp,padding,SEEK_CUR);     
-    }
+    fread(static_cast<void*>(&color_bytes[0]), 1, height*((3*width)+padding), fp);
     fclose(fp);
-
-    colors.resize(colors.size() + (2*(width+4)),border);
- 
-    guass_helper(colors, blur_img, width+4, height+4);
-
-    ofstream hst(dst + "/" + file_name.substr(src.size(),file_name.size()));
-
-    write(hst, blur_img, file_name);
+    for(int y = 0; y < height; y++){
+        colors.resize(colors.size() + 2, border);                   // left border
+        for(int x = 0; x < width; x++)
+            push_color(colors, color_bytes, y*((3*width)+padding) + 3*x);     
+        colors.resize(colors.size() + 2, border);                   // right border
+    }
+    colors.resize(colors.size() + (2*(width+4)), border);           // bottom boreder
+    auto load_stop = chrono::high_resolution_clock::now(); 
+    auto load_t = duration_cast<chrono::microseconds>(load_stop - load_start);
+    return static_cast<int>(load_t.count());
 }
 
 
-// helper function to calculate g
-void mono_helper(unsigned char (&color_bytes)[3], double (&norm)[3], double &g){
+int gauss(string file_name, string src, string dst, vector <color> &colors){
+    int start, width, height;
+    vector<color> blur_img;
+    get_dimensions(file_name, start, width, height);                                         
+    gauss_helper(colors, blur_img, width+4, height+4);
+    auto write_start = chrono::high_resolution_clock::now(); 
+    write(file_name, src, dst, blur_img);
+    auto write_stop = chrono::high_resolution_clock::now(); 
+    auto write_t = duration_cast<chrono::microseconds>(write_stop - write_start);
+    return static_cast<int>(write_t.count());
+}
+
+
+void main_gauss(string file_name, string src, string dst, vector <color> &colors){
+    int read_t = gauss_read(file_name,colors);
+    auto oper_start = chrono::high_resolution_clock::now();
+    int  write_t = gauss(file_name, src, dst, colors);
+    auto oper_stop = chrono::high_resolution_clock::now();
+    auto oper = duration_cast<chrono::microseconds>(oper_stop - oper_start);
+    int oper_and_write_t = static_cast<int>(oper.count());
+    int oper_t = oper_and_write_t - write_t;
+    int total_t = oper_and_write_t + read_t;
+    cout << "File: " << src << "/" << file_name << "(time: " << total_t << ")\n";
+    cout << "\tLoad Time: " << read_t << endl;
+    cout << "\tGauss Time: " << oper_t << endl;
+    cout << "\tStore Time: " << write_t << endl;
+}
+
+
+void mono_helper(color &mono_clr){
+    double norm[3],g;
+    norm[0] = mono_clr.b / 255.0;
+    norm[1] = mono_clr.g / 255.0;
+    norm[2] = mono_clr.r / 255.0;
     for(int i = 0; i < 3; i++){
-        norm[i] = color_bytes[i] / 255.0;
         if (norm[i] > 0.04045) {norm[i] = pow((norm[i] + 0.055)/(1.055),2.4);}
         else {norm[i] = norm[i] / 12.92;}
-        }
-
+    }
     g = (0.2126 * norm[2] + 0.7152 * norm[1] + 0.0722 * norm[0]);
     if (g <= 0.0031308) g = 12.92 * g;
     else g = (1.055*pow(g,(1.0/2.4)))-0.055;
-
-    g = floor(g * 255);
+    mono_clr.b = mono_clr.g = mono_clr.r = floor(g * 255);
 }
 
-void mono(string file_name, string src, string dst){
-    int start, width, height, padding;
-    double g, norm[3];
-    unsigned char color_bytes[3];
-    vector <color> colors;
 
+int mono(string file_name, string src, string dst, vector <color> &colors){
+    int start, width, height;
     get_dimensions(file_name, start, width, height);
-    padding = (4 - (width * 3) % 4) % 4;
-
-    FILE *fp = fopen(file_name.c_str(), "rb");
-
-    fseek(fp, start, SEEK_SET);
-
-    // reads all data in array of structs, called colors
     for(int y = 0; y < height; y++){
         for(int x = 0; x < width; x++){
-            fread(color_bytes, 1, 3, fp);           // read each set of color bytes
-            mono_helper(color_bytes,norm,g);        // calculate g value using helper
-
-            color clr;                              // create struct of color
-            clr.b = clr.g = clr.r = g;              // set values
-            colors.push_back(clr);                  // push to vector
+            mono_helper(colors[y*width + x]);
         }
-        fseek(fp,padding,SEEK_CUR);                 
     }
-    fclose(fp);
-    ofstream hst(dst + "/" + file_name.substr(src.size(),file_name.size()));
-    write(hst,colors, file_name);
+    auto write_start = chrono::high_resolution_clock::now(); 
+    write(file_name, src, dst, colors);
+    auto write_stop = chrono::high_resolution_clock::now(); 
+    auto write_t = duration_cast<chrono::microseconds>(write_stop - write_start);
+    return static_cast<int>(write_t.count());
+}
+
+
+void main_mono(string file_name, string src, string dst, vector <color> &colors){
+    int read_t = read(file_name,colors);
+    auto oper_start = chrono::high_resolution_clock::now();
+    int  write_t = mono(file_name, src, dst, colors);
+    auto oper_stop = chrono::high_resolution_clock::now();
+    auto oper = duration_cast<chrono::microseconds>(oper_stop - oper_start);
+    int oper_and_write_t = static_cast<int>(oper.count());
+    int oper_t = oper_and_write_t - write_t;
+    int total_t = oper_and_write_t + read_t;
+    cout << "File: " << src << "/" << file_name << "(time: " << total_t << ")\n";
+    cout << "\tLoad Time: " << read_t << endl;
+    cout << "\tMono Time: " << oper_t << endl;
+    cout << "\tStore Time: " << write_t << endl;
 }
