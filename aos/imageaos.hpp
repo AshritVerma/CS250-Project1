@@ -4,10 +4,22 @@
 #include <filesystem>
 
 
+struct color{
+    uint8_t b,g,r;
+};
+
 using namespace std;
 
-void copy(string file_name, string src, string dst);
+// main handling for copy function
+void main_copy(string file_name, string src, string dst, vector <color> &colors);
 
-void mono(string file_name, string src, string dst);
+// main handling for gauss function
+void main_gauss(string file_name, string src, string dst, vector <color> &colors);
 
-void guass(string file_name, string src, string dst);
+// main handling for mono function
+void main_mono(string file_name, string src, string dst, vector <color> &colors);
+
+
+
+
+
