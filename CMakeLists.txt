@@ -16,3 +16,5 @@ add_executable(image-aos image-aos/main-aos.cpp)
 target_link_libraries(image-aos common aos)
 add_executable(image-soa image-soa/main-soa.cpp)
 target_link_libraries(image-soa common soa)
+
+#ADDED GOOGLE UNIT TESTS
